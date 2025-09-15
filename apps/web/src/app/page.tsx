@@ -2,34 +2,35 @@
 import { useMiniApp } from "@/contexts/miniapp-context";
 import { sdk } from "@farcaster/frame-sdk";
 import { useState, useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useActiveAccount, useProfiles, ConnectButton } from "thirdweb/react";
+import { client } from "@/lib/thirdweb-client";
+
 
 export default function Home() {
   const { context, isMiniAppReady } = useMiniApp();
   const [isAddingMiniApp, setIsAddingMiniApp] = useState(false);
   const [addMiniAppMessage, setAddMiniAppMessage] = useState<string | null>(null);
   
-  // Wallet connection hooks
-  const { address, isConnected, isConnecting } = useAccount();
-  const { connect, connectors } = useConnect();
+  // Thirdweb hooks
+  const account = useActiveAccount();
+  const { data: profiles } = useProfiles({ client });
   
   // Auto-connect wallet when miniapp is ready
   useEffect(() => {
-    if (isMiniAppReady && !isConnected && !isConnecting && connectors.length > 0) {
-      const farcasterConnector = connectors.find(c => c.id === 'farcaster');
-      if (farcasterConnector) {
-        connect({ connector: farcasterConnector });
-      }
+    if (isMiniAppReady) {
+      console.log("MiniApp ready, Thirdweb will handle wallet connection");
     }
-  }, [isMiniAppReady, isConnected, isConnecting, connectors, connect]);
+  }, [isMiniAppReady]);
   
   // Extract user data from context
   const user = context?.user;
   // Use connected wallet address if available, otherwise fall back to user custody/verification
-  const walletAddress = address || user?.custody || user?.verifications?.[0] || "0x1e4B...605B";
+  const walletAddress = account?.address || user?.custody || user?.verifications?.[0] || "0x1e4B...605B";
   const displayName = user?.displayName || user?.username || "User";
   const username = user?.username || "@user";
   const pfpUrl = user?.pfpUrl;
+  const isConnected = !!account;
+  const isConnecting = false; // Thirdweb maneja esto internamente
   
   // Format wallet address to show first 6 and last 4 characters
   const formatAddress = (address: string) => {
@@ -50,6 +51,14 @@ export default function Home() {
     );
   }
   
+  
+  
+
+  if (!account) {
+    return <ConnectButton client={client} />;
+  }
+
+
   return (
     <main className="flex-1">
       <section className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -63,7 +72,7 @@ export default function Home() {
           <p className="text-lg text-gray-600 mb-6">
             You are signed in!
           </p>
-          
+          <code> {JSON.stringify(profiles || [], null, 2)}</code>
           {/* User Wallet Address */}
           <div className="mb-8">
             <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
