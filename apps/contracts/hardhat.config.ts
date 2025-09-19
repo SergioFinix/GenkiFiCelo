@@ -1,7 +1,9 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "dotenv/config";
-console.log(process.env.PRIVATE_KEY);
+
+//console.log(process.env.PRIVATE_KEY);
+//console.log(process.env.CELOSCAN_API_KEY);
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -40,7 +42,8 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       celo: process.env.CELOSCAN_API_KEY || "",
-      alfajores: process.env.CELOSCAN_API_KEY || "",
+      alfajores: process.env.ALFAJORES_CELOSCAN_API_KEY || "",
+      celoSepolia: process.env.CELOSCAN_API_KEY || "",
     },
     customChains: [
       {
@@ -63,7 +66,7 @@ const config: HardhatUserConfig = {
         network: "celoSepolia",
         chainId: 11142220,
         urls: {
-          apiURL: "https://api-alfajores.celoscan.io/api",
+          apiURL: "https://celo-sepolia.blockscout.com/api",
           browserURL: "https://celo-sepolia.blockscout.com",
         },
       },
