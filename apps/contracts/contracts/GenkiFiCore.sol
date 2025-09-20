@@ -15,14 +15,14 @@ contract GenkiFiCore is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     // ============ CONSTANTS ============
-    uint256 public constant MIN_JOIN_AMOUNT = 50 * 10**6; // $50 USDC (6 decimals)
+    uint256 public constant MIN_JOIN_AMOUNT = 1 * 10**6; // $1 USDC (6 decimals)
     uint256 public constant MAX_CIRCLE_MEMBERS = 12;
     uint256 public constant XP_CREATE_CIRCLE = 50;
     uint256 public constant XP_JOIN_CIRCLE = 25;
     uint256 public constant XP_DAILY_WORKOUT = 10;
     
     // CUSD on Alfajores
-    address public constant CUSD_ADDRESS = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+    address public constant CUSD_ADDRESS = 0x765DE816845861e75A25fCA122bb6898B8B1282a;
 
     // ============ STRUCTS ============
     struct Circle {

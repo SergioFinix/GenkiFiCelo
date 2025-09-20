@@ -1,5 +1,7 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
+import "@nomicfoundation/hardhat-verify";
+
 import "dotenv/config";
 
 //console.log(process.env.PRIVATE_KEY);
@@ -33,6 +35,11 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 11142220,
     },
+    baklava: {
+      url: "https://baklava-forno.celo-testnet.org",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 62320,
+    },
     // Local development
     localhost: {
       url: "http://127.0.0.1:8545",
@@ -44,6 +51,7 @@ const config: HardhatUserConfig = {
       celo: process.env.CELOSCAN_API_KEY || "",
       alfajores: process.env.ALFAJORES_CELOSCAN_API_KEY || "",
       celoSepolia: process.env.CELOSCAN_API_KEY || "",
+      baklava: process.env.CELOSCAN_API_KEY || "",
     },
     customChains: [
       {
@@ -68,6 +76,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://celo-sepolia.blockscout.com/api",
           browserURL: "https://celo-sepolia.blockscout.com",
+        },
+      },
+      {
+        network: "baklava",
+        chainId: 62320 ,
+        urls: {
+          apiURL: "https://baklava-forno.celo-testnet.org/",
+          browserURL: "https://celo-baklava.blockscout.com",
         },
       },
     ],
