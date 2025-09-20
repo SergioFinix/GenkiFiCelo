@@ -48,6 +48,33 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // GenkiFi custom colors
+        genki: {
+          green: "#10B981",
+          blue: "#3B82F6",
+          gold: "#F59E0B",
+          purple: "#8B5CF6",
+          pink: "#EC4899",
+        },
+        gradient: {
+          primary: "from-green-400 to-blue-500",
+          secondary: "from-purple-400 to-pink-500",
+          accent: "from-yellow-400 to-orange-500",
+        },
+      },
+      backgroundImage: {
+        "gradient-primary": "linear-gradient(135deg, #10B981 0%, #3B82F6 100%)",
+        "gradient-secondary": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+        "gradient-accent": "linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)",
+        "glass": "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+      },
+      backdropBlur: {
+        xs: "2px",
+      },
+      boxShadow: {
+        "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        "glow": "0 0 20px rgba(59, 130, 246, 0.5)",
+        "glow-green": "0 0 20px rgba(16, 185, 129, 0.5)",
       },
       keyframes: {
         "accordion-down": {

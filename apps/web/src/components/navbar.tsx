@@ -3,9 +3,12 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, ExternalLink } from "lucide-react"
+import { Menu, ExternalLink, Zap } from "lucide-react"
+import { useActiveAccount } from "thirdweb/react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
+import { CustomConnectButton } from "@/components/web3/ConnectWallet"
+import { formatAddress } from "@/lib/utils/helpers"
 import {
   Sheet,
   SheetContent,
@@ -19,9 +22,10 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const account = useActiveAccount()
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/20 backdrop-blur-md supports-[backdrop-filter]:bg-black/20">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
           {/* Mobile menu button */}
@@ -34,8 +38,10 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
               <div className="flex items-center gap-2 mb-8">
-
-                <span className="font-bold text-lg">
+                <div className="w-8 h-8 rounded-xl bg-gradient-primary flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-bold text-lg text-white">
                   GenkiFi
                 </span>
               </div>
@@ -54,8 +60,14 @@ export function Navbar() {
                     {link.external && <ExternalLink className="h-4 w-4" />}
                   </Link>
                 ))}
-                <div className="mt-6 pt-6 border-t">
-                  <Button className="w-full">Connect Wallet</Button>
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  {account ? (
+                    <div className="text-white/60 text-sm">
+                      Connected: {formatAddress(account.address)}
+                    </div>
+                  ) : (
+                    <CustomConnectButton className="w-full" />
+                  )}
                 </div>
               </nav>
             </SheetContent>
@@ -63,8 +75,10 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-
-            <span className="hidden font-bold text-xl sm:inline-block">
+            <div className="w-8 h-8 rounded-xl bg-gradient-primary flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="hidden font-bold text-xl sm:inline-block text-white">
               GenkiFi
             </span>
           </Link>
@@ -78,10 +92,10 @@ export function Navbar() {
               href={link.href}
               target={link.external ? "_blank" : undefined}
               rel={link.external ? "noopener noreferrer" : undefined}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-primary ${
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-genki-green ${
                 pathname === link.href
-                  ? "text-foreground"
-                  : "text-foreground/70"
+                  ? "text-white"
+                  : "text-white/70"
               }`}
             >
               {link.name}
@@ -90,7 +104,20 @@ export function Navbar() {
           ))}
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">Connect Wallet</Button>
+            {account ? (
+              <div className="flex items-center gap-3">
+                <Link href="/dashboard">
+                  <Button variant="outline" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
+                <div className="text-white/60 text-sm">
+                  {formatAddress(account.address)}
+                </div>
+              </div>
+            ) : (
+              <CustomConnectButton />
+            )}
           </div>
         </nav>
       </div>

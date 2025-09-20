@@ -78,3 +78,86 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* GenkiFi Custom Components */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-glass;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-genki-green to-genki-blue bg-clip-text text-transparent;
+  }
+  
+  .glow-effect {
+    @apply shadow-glow hover:shadow-glow-green transition-shadow duration-300;
+  }
+  
+  .genki-button {
+    @apply bg-gradient-primary text-white shadow-lg hover:shadow-glow-green hover:scale-105 active:scale-95 transition-all duration-200;
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-white/10 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/30 rounded-full hover:bg-white/50;
+  }
+  
+  /* Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+  }
+  
+  .glow-animation {
+    animation: glow 2s ease-in-out infinite;
+  }
+  
+  /* Background patterns */
+  .genki-bg {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+  
+  /* Text shadow utilities */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Enhanced glassmorphism */
+  .glass-enhanced {
+    @apply bg-white/15 backdrop-blur-md border border-white/25 shadow-xl;
+  }
+  
+  /* Better contrast for readability */
+  .text-high-contrast {
+    @apply text-white drop-shadow-lg;
+  }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
