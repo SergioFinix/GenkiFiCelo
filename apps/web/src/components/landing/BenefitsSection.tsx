@@ -100,7 +100,7 @@ export function BenefitsSection() {
           ))}
         </div>
 
-        {/* Additional Features */}
+        {/* Additional Features 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {additionalFeatures.map((feature, index) => (
             <div
@@ -120,7 +120,8 @@ export function BenefitsSection() {
               </div>
             </div>
           ))}
-        </div>
+        </div>*/}
+        
       </div>
     </section>
   );
