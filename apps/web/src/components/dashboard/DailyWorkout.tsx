@@ -167,7 +167,7 @@ export function DailyWorkout() {
         <div className="p-4 bg-gradient-primary/20 rounded-xl border border-white/20">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-white font-semibold">Today's Progress</div>
+              <div className="text-white font-semibold">Today&apos;s Progress</div>
               <div className="text-white/60 text-sm">
                 {completedWorkouts} of 3 workouts completed
               </div>

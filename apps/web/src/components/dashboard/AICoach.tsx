@@ -212,7 +212,7 @@ export function AICoach() {
             <span className="text-white font-semibold text-sm">AI Insight</span>
           </div>
           <p className="text-white/70 text-sm">
-            Based on your activity, you're performing 23% better than average users. 
+            Based on your activity, you&apos;re performing 23% better than average users. 
             Consider increasing your deposit frequency to maximize compound returns.
           </p>
         </div>
