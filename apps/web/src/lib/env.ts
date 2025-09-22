@@ -4,7 +4,7 @@ import { z } from "zod";
 // https://env.t3.gg/docs/nextjs
 export const env = createEnv({
   server: {
-    JWT_SECRET: z.string().min(1).optional().default("build-time-placeholder"),
+    JWT_SECRET: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_URL: z.string().min(1).optional().default("http://localhost:3000"),
