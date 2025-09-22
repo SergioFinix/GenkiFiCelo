@@ -3,7 +3,7 @@
 import { ConnectButton } from "thirdweb/react";
 import { Button } from "@/components/ui/Button";
 import { inAppWallet, createWallet } from "thirdweb/wallets";
-import { celoAlfajores, client } from "@/lib/thirdweb/client";
+import { celo, client } from "@/lib/thirdweb/client";
 
 // Custom wallet configurations
 const wallets = [
@@ -43,7 +43,7 @@ export function ConnectWalletButton({
   return (
     <ConnectButton
       client={client}
-      chain={celoAlfajores}
+      chain={celo}
       wallets={wallets}
       connectButton={{
         label: "Connect Wallet",
@@ -72,7 +72,7 @@ export function CustomConnectButton({
   return (
     <ConnectButton
       client={client}
-      chain={celoAlfajores}
+      chain={celo}
       wallets={wallets}
       connectButton={{
         label: children,

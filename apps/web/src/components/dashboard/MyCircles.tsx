@@ -7,9 +7,11 @@ import { CreateCircleModal } from "@/components/modals/CreateCircleModal";
 import { JoinCircleModal } from "@/components/modals/JoinCircleModal";
 import { formatCurrency, generateCircleColor } from "@/lib/utils/helpers";
 import { Plus, Users, TrendingUp, Settings, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
-import { genkiFiCoreContract, CONTRACT_STATUS } from "@/lib/thirdweb/contracts";
+import { readContract, getContract } from "thirdweb";
+import { genkiFiCoreContract, CONTRACT_STATUS, CONTRACT_ADDRESSES, GENKIFI_CORE_ABI } from "@/lib/thirdweb/contracts";
+import { defaultChain, client } from "@/lib/thirdweb/client";
 
 export function MyCircles() {
   const [selectedCircle, setSelectedCircle] = useState<string | null>(null);
@@ -20,14 +22,23 @@ export function MyCircles() {
   const account = useActiveAccount();
 
   // Get user's circles from the smart contract (only if contract is deployed)
-  const { data: userCircles, isLoading: isLoadingCircles } = useReadContract({
+  const { data: userCircles, isLoading: isLoadingCircles, error: userCirclesError } = useReadContract({
     contract: genkiFiCoreContract,
-    method: "function getUserCircles(address _user) view returns (uint256[])",
+    method: "getUserCircles",
     params: [account?.address || "0x0"],
     queryOptions: {
       enabled: CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED && !!account?.address
     }
   });
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("User circles data:", userCircles);
+    console.log("Is loading circles:", isLoadingCircles);
+    console.log("User circles error:", userCirclesError);
+    console.log("Account address:", account?.address);
+    console.log("Contract deployed:", CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED);
+  }, [userCircles, isLoadingCircles, userCirclesError, account?.address]);
 
   const handleCreateCircle = () => {
     setShowCreateModal(true);
@@ -55,6 +66,60 @@ export function MyCircles() {
     // Refresh user circles or show success message
   };
 
+  // Test contract connectivity
+  const testContractConnectivity = async () => {
+    console.log("=== DETAILED CONTRACT DEBUGGING ===");
+    
+    // Step 1: Verify basic configuration
+    console.log("1. Basic Configuration:");
+    console.log("  - Contract address:", CONTRACT_ADDRESSES.GENKIFI_CORE);
+    console.log("  - Chain:", defaultChain.name, "(ID:", defaultChain.id, ")");
+    console.log("  - Client ID:", "c32dfba51fb18c067febf5989d042513");
+    console.log("  - Account:", account?.address);
+    console.log("  - Contract deployed status:", CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED);
+    
+    // Step 2: Verify contract instance
+    console.log("2. Contract Instance:");
+    console.log("  - genkiFiCoreContract:", genkiFiCoreContract);
+    console.log("  - Contract address in instance:", genkiFiCoreContract.address);
+    console.log("  - Contract chain in instance:", genkiFiCoreContract.chain);
+    
+    // Step 3: Verify ABI
+    console.log("3. ABI Verification:");
+    console.log("  - ABI length:", GENKIFI_CORE_ABI.length);
+    console.log("  - Functions in ABI:", GENKIFI_CORE_ABI.filter(item => item.type === 'function').map(f => f.name));
+    
+    // Step 4: Test with fresh contract
+    console.log("4. Fresh Contract Test:");
+    
+    try {
+      const freshContract = getContract({
+        client,
+        chain: defaultChain,
+        address: CONTRACT_ADDRESSES.GENKIFI_CORE,
+        abi: GENKIFI_CORE_ABI,
+      });
+      
+      console.log("  - Fresh contract created:", freshContract);
+      
+      // Test with the fresh contract
+      console.log("  - Testing getTotalCircles with fresh contract...");
+      const result = await readContract({
+        contract: freshContract,
+        method: "getTotalCircles",
+        params: []
+      });
+      
+      console.log("  ✅ Fresh contract SUCCESS:", result);
+      
+    } catch (error: any) {
+      console.error("  ❌ Fresh contract FAILED:", error.message);
+      console.error("  Full error:", error);
+    }
+    
+    console.log("=== DEBUGGING COMPLETED ===");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -70,6 +135,23 @@ export function MyCircles() {
           <Button onClick={handleCreateCircle} size="sm">
             <Plus className="w-4 h-4 mr-2" />
             Create Circle
+          </Button>
+          {/* Debug button - remove in production */}
+          <Button 
+            onClick={() => {
+              console.log("=== DEBUG INFO ===");
+              console.log("Contract address:", CONTRACT_ADDRESSES.GENKIFI_CORE);
+              console.log("Contract deployed:", CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED);
+              console.log("Account:", account?.address);
+              console.log("Default chain:", defaultChain);
+              console.log("==================");
+              testContractConnectivity();
+            }} 
+            variant="outline" 
+            size="sm"
+            className="text-xs"
+          >
+            Test Contract
           </Button>
         </div>
       </div>
@@ -91,6 +173,26 @@ export function MyCircles() {
               </div>
             </CardContent>
           </Card>
+                </div>
+      )}
+
+      {/* Error State */}
+      {CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED && userCirclesError && (
+        <div className="text-center py-8">
+          <Card variant="glass" className="max-w-md mx-auto">
+            <CardContent className="py-8">
+              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                <Settings className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Error Loading Circles</h3>
+              <p className="text-white/60 text-sm mb-4">
+                {userCirclesError.message || "Failed to load your circles from the smart contract."}
+              </p>
+              <div className="text-xs text-white/40">
+                Make sure your wallet is connected and try again.
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -98,14 +200,14 @@ export function MyCircles() {
       {CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED && isLoadingCircles && (
         <div className="text-center py-8">
           <div className="text-white/60">Loading your circles...</div>
-        </div>
+      </div>
       )}
 
       {/* Circles Grid */}
       {!isLoadingCircles && (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {userCircles && userCircles.length > 0 ? (
-            userCircles.map((circleId: bigint) => (
+                userCircles.map((circleId: any) => (
               <CircleCard 
                 key={circleId.toString()} 
                 circleId={circleId.toString()} 
@@ -115,26 +217,26 @@ export function MyCircles() {
             ))
           ) : (
             <div className="col-span-full">
-              <Card variant="glass" className="text-center py-12">
-                <CardContent>
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-8 h-8 text-white/40" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No Circles Yet</h3>
-                  <p className="text-white/60 mb-6">
-                    Create your first investment circle or join an existing one to start earning together.
-                  </p>
-                  <div className="flex gap-3 justify-center">
-                    <Button onClick={handleCreateCircle}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Circle
-                    </Button>
+        <Card variant="glass" className="text-center py-12">
+          <CardContent>
+            <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-white/40" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No Circles Yet</h3>
+            <p className="text-white/60 mb-6">
+              Create your first investment circle or join an existing one to start earning together.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={handleCreateCircle}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Circle
+              </Button>
                     <Button onClick={() => handleJoinCircle()} variant="outline">
                       Browse Circles
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
             </div>
           )}
         </div>
@@ -190,18 +292,29 @@ function CircleCard({
   const [isLoading, setIsLoading] = useState(true);
 
   // Get circle information
-  const { data: circleData, isLoading: isLoadingInfo } = useReadContract({
+  const { data: circleData, isLoading: isLoadingInfo, error } = useReadContract({
     contract: genkiFiCoreContract,
-    method: "function getCircleInfo(uint256 _circleId) view returns (tuple)",
-    params: [BigInt(circleId)]
+    method: "getCircleInfo",
+    params: [BigInt(circleId)],
+    queryOptions: {
+      enabled: CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED && !!circleId
+    }
   });
 
   React.useEffect(() => {
     if (circleData) {
+      console.log("Circle data received:", circleData);
       setCircleInfo(circleData);
       setIsLoading(false);
     }
   }, [circleData]);
+
+  React.useEffect(() => {
+    if (error) {
+      console.error("Error loading circle info for circleId:", circleId, error);
+      setIsLoading(false);
+    }
+  }, [error, circleId]);
 
   if (isLoading || isLoadingInfo) {
     return (
@@ -215,7 +328,28 @@ function CircleCard({
     );
   }
 
-  if (!circleInfo) return null;
+  if (error) {
+    return (
+      <Card variant="glass" className="p-6">
+        <div className="text-center text-red-400">
+          Error loading circle {circleId}
+          <div className="text-xs text-white/60 mt-1">
+            {error.message}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!circleInfo) {
+    return (
+      <Card variant="glass" className="p-6">
+        <div className="text-center text-white/60">
+          Circle {circleId} not found
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -232,10 +366,10 @@ function CircleCard({
             </div>
             <div>
               <CardTitle className="text-lg text-white group-hover:text-genki-green transition-colors">
-                {circleInfo.name}
+                {circleInfo?.name || "Loading..."}
               </CardTitle>
               <p className="text-white/60 text-sm">
-                {circleInfo.members.length}/12 members • {circleInfo.isActive ? "active" : "inactive"}
+                {circleInfo?.members?.length || 0}/12 members • {circleInfo?.isActive ? "active" : "inactive"}
               </p>
             </div>
           </div>
@@ -245,7 +379,7 @@ function CircleCard({
 
       <CardContent className="space-y-4">
         {/* Tags */}
-        {circleInfo.tags && circleInfo.tags.length > 0 && (
+        {circleInfo?.tags && circleInfo.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {circleInfo.tags.slice(0, 3).map((tag: string, index: number) => (
               <span
@@ -267,13 +401,13 @@ function CircleCard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-lg font-bold text-white">
-              {formatCurrency(circleInfo.totalValue / 1000000)}
+              {formatCurrency(Number(circleInfo?.totalValue || 0) / 1000000)}
             </div>
             <div className="text-xs text-white/60">Total Value</div>
           </div>
           <div>
             <div className="text-lg font-bold text-genki-green">
-              {formatCurrency(circleInfo.minInvestment / 1000000)}
+              {formatCurrency(Number(circleInfo?.minInvestment || 0) / 1000000)}
             </div>
             <div className="text-xs text-white/60">Min Investment</div>
           </div>
@@ -299,7 +433,7 @@ function CircleCard({
 
         {/* Created Date */}
         <div className="text-xs text-white/50">
-          Created {new Date(Number(circleInfo.createdAt) * 1000).toLocaleDateString()}
+          Created {circleInfo?.createdAt ? new Date(Number(circleInfo.createdAt) * 1000).toLocaleDateString() : "Unknown"}
         </div>
       </CardContent>
     </Card>
