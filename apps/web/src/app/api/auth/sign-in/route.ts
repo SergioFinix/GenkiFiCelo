@@ -3,7 +3,9 @@ import { Errors, createClient } from "@farcaster/quick-auth";
 import { env } from "@/lib/env";
 import * as jose from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { zeroAddress } from "thirdweb/utils";
+//import { zeroAddress } from "thirdweb/utils";
+import { ADDRESS_ZERO } from "thirdweb";
+
 type Address = `0x${string}`;
 
 export const dynamic = "force-dynamic";
@@ -15,7 +17,7 @@ export const POST = async (req: NextRequest): Promise<NextResponse> => {
     const { token: farcasterToken } = await req.json();
     let fid;
     let isValidSignature;
-    let walletAddress: Address = zeroAddress;
+    let walletAddress: Address = ADDRESS_ZERO;
     let expirationTime = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
     
     // Verify signature matches custody address and auth address
