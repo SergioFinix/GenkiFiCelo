@@ -3,7 +3,7 @@ import {
   deleteUserNotificationDetails,
   setUserNotificationDetails,
 } from "@/lib/memory-store";
-import { getContract } from "thirdweb";
+import { getContract, readContract } from "thirdweb";
 import { createThirdwebClient } from "thirdweb";
 import { celo } from "thirdweb/chains";
 
@@ -44,7 +44,11 @@ async function verifyFidOwnership(fid: number, appKey: `0x${string}`) {
       abi: KEY_REGISTRY_ABI,
     });
 
-    const result = await contract.call("keyDataOf", [BigInt(fid), appKey]);
+    const result = await readContract({
+      contract,
+      method: "keyDataOf",
+      params: [BigInt(fid), appKey],
+    });
 
     return result.state === 1 && result.keyType === 1;
   } catch (error) {
