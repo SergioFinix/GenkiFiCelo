@@ -3,8 +3,8 @@ import {
   deleteUserNotificationDetails,
   setUserNotificationDetails,
 } from "@/lib/memory-store";
-import { createPublicClient, http } from "viem";
-import { optimism } from "viem/chains";
+import { createThirdwebClient } from "thirdweb";
+import { optimism } from "thirdweb/chains";
 
 const KEY_REGISTRY_ADDRESS = "0x00000000Fc1237824fb747aBDE0FF18990E59b7e";
 

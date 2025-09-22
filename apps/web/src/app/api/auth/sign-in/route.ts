@@ -3,7 +3,8 @@ import { Errors, createClient } from "@farcaster/quick-auth";
 import { env } from "@/lib/env";
 import * as jose from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { Address, zeroAddress } from "viem";
+import { zeroAddress } from "thirdweb/utils";
+type Address = `0x${string}`;
 
 export const dynamic = "force-dynamic";
 
