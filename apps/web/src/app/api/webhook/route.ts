@@ -3,8 +3,13 @@ import {
   deleteUserNotificationDetails,
   setUserNotificationDetails,
 } from "@/lib/memory-store";
+import { getContract } from "thirdweb";
 import { createThirdwebClient } from "thirdweb";
-import { optimism } from "thirdweb/chains";
+import { celo } from "thirdweb/chains";
+
+const client = createThirdwebClient({
+  clientId: "c32dfba51fb18c067febf5989d042513",
+});
 
 const KEY_REGISTRY_ADDRESS = "0x00000000Fc1237824fb747aBDE0FF18990E59b7e";
 
@@ -31,18 +36,15 @@ const KEY_REGISTRY_ABI = [
 ] as const;
 
 async function verifyFidOwnership(fid: number, appKey: `0x${string}`) {
-  const client = createPublicClient({
-    chain: optimism,
-    transport: http(),
-  });
-
   try {
-    const result = await client.readContract({
+    const contract = getContract({
+      client,
+      chain: celo,
       address: KEY_REGISTRY_ADDRESS,
       abi: KEY_REGISTRY_ABI,
-      functionName: "keyDataOf",
-      args: [BigInt(fid), appKey],
     });
+
+    const result = await contract.call("keyDataOf", [BigInt(fid), appKey]);
 
     return result.state === 1 && result.keyType === 1;
   } catch (error) {
