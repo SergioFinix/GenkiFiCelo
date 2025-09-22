@@ -133,9 +133,9 @@ export function AICoach() {
           <Button
             onClick={handleAnalyze}
             loading={isAnalyzing}
-            variant="gradient"
+            variant="default"
             size="lg"
-            className="w-full"
+            className="w-full bg-gradient-primary hover:bg-gradient-primary/90"
           >
             {isAnalyzing ? "Analyzing..." : "Get AI Analysis"}
           </Button>
