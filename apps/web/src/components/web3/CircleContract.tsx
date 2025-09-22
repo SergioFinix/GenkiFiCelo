@@ -3,7 +3,7 @@
 import { useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { client, celoAlfajores } from "@/lib/thirdweb/client";
-import { genkiFiCoreContract, CONTRACT_ADDRESSES } from "@/lib/thirdweb/contracts";
+// import { genkiFiCoreContract, CONTRACT_ADDRESSES } from "@/lib/thirdweb/contracts";
 import { formatAddress, formatCurrency } from "@/lib/utils/helpers";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
