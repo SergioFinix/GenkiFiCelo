@@ -57,5 +57,5 @@ export const celoSepolia = {
   ],
 };
 
-// Default chain (Alfajores for development)
-export const defaultChain = celoAlfajores;
+// Default chain (Mainnet for production)
+export const defaultChain = celoMainnet;
