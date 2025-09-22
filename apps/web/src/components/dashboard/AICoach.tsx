@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Brain, TrendingUp, Shield, Lightbulb, MessageCircle, ArrowRight } from "lucide-react";
 import { useState } from "react";
