@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { CircleContract } from "@/components/web3/CircleContract";
 import { CreateCircleModal } from "@/components/modals/CreateCircleModal";
 import { JoinCircleModal } from "@/components/modals/JoinCircleModal";
+import { BrowseCirclesModal } from "@/components/modals/BrowseCirclesModal";
+import { ContractTest } from "@/components/debug/ContractTest";
 import { formatCurrency, generateCircleColor } from "@/lib/utils/helpers";
 import { Plus, Users, TrendingUp, Settings, ExternalLink } from "lucide-react";
 import React, { useState } from "react";
@@ -17,6 +19,7 @@ export function MyCircles() {
   const [selectedCircle, setSelectedCircle] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showBrowseModal, setShowBrowseModal] = useState(false);
   const [joinCircleId, setJoinCircleId] = useState<string>("");
 
   const account = useActiveAccount();
@@ -49,9 +52,13 @@ export function MyCircles() {
       setJoinCircleId(circleId);
       setShowJoinModal(true);
     } else {
-      // Open a general join modal or circle browser
-      console.log("Open circle browser...");
+      // Open circle browser
+      setShowBrowseModal(true);
     }
+  };
+
+  const handleBrowseCircles = () => {
+    setShowBrowseModal(true);
   };
 
   const handleCreateSuccess = (circleId: string) => {
@@ -129,7 +136,7 @@ export function MyCircles() {
           <p className="text-white/60">Manage your investment circles</p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => handleJoinCircle()} variant="outline" size="sm">
+          <Button onClick={handleBrowseCircles} variant="outline" size="sm">
             Browse Circles
           </Button>
           <Button onClick={handleCreateCircle} size="sm">
@@ -154,6 +161,11 @@ export function MyCircles() {
             Test Contract
           </Button>
         </div>
+      </div>
+
+      {/* Debug Section - Remove in production */}
+      <div className="mt-8">
+        <ContractTest />
       </div>
 
       {/* Contract Not Deployed State */}
@@ -268,15 +280,25 @@ export function MyCircles() {
         onSuccess={handleCreateSuccess}
       />
 
-      <JoinCircleModal
-        isOpen={showJoinModal}
-        onClose={() => setShowJoinModal(false)}
-        circleId={joinCircleId}
-        onSuccess={handleJoinSuccess}
-      />
-    </div>
-  );
-}
+          <JoinCircleModal
+            isOpen={showJoinModal}
+            onClose={() => setShowJoinModal(false)}
+            circleId={joinCircleId}
+            onSuccess={handleJoinSuccess}
+          />
+
+          <BrowseCirclesModal
+            isOpen={showBrowseModal}
+            onClose={() => setShowBrowseModal(false)}
+            onJoinCircle={(circleId) => {
+              setJoinCircleId(circleId);
+              setShowBrowseModal(false);
+              setShowJoinModal(true);
+            }}
+          />
+        </div>
+      );
+    }
 
 // Circle Card Component
 function CircleCard({ 
