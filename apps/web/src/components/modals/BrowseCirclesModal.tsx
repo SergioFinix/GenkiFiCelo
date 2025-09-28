@@ -24,9 +24,16 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minInvestmentFilter, setMinInvestmentFilter] = useState(0);
+  const [maxInvestmentFilter, setMaxInvestmentFilter] = useState(1000);
+  const [memberCountFilter, setMemberCountFilter] = useState({ min: 0, max: 12 });
+  const [dateFilter, setDateFilter] = useState({ start: "", end: "" });
+  const [sortBy, setSortBy] = useState<"name" | "createdAt" | "totalValue" | "members">("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [loadingCircles, setLoadingCircles] = useState<boolean[]>([]);
   const [circles, setCircles] = useState<CircleInfo[]>([]);
   const [loadingProgress, setLoadingProgress] = useState({ current: 0, total: 0 });
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Get total circles count
   const { data: totalCircles, isLoading: isLoadingTotal } = useReadContract({
@@ -38,7 +45,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
     }
   });
 
-  // Load all circles
+  // Load all circles with improved performance
   useEffect(() => {
     if (!totalCircles || totalCircles === 0n) {
       setCircles([]);
@@ -50,35 +57,69 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
       console.log(`Starting to load ${total} circles...`);
       setLoadingCircles(new Array(total).fill(true));
       setLoadingProgress({ current: 0, total });
+      setLoadingError(null);
       const loadedCircles: CircleInfo[] = [];
       const errors: string[] = [];
 
-      // Load circles sequentially to avoid RPC rate limits and ensure all are loaded
-      for (let i = 1; i <= total; i++) {
-        try {
-          console.log(`Loading circle ${i}/${total}...`);
-          setLoadingProgress({ current: i, total });
-          const circle = await loadSingleCircle(i);
-          if (circle) {
-            loadedCircles.push(circle);
-            console.log(`✅ Circle ${i} loaded:`, circle.name);
-          } else {
-            console.log(`❌ Circle ${i} returned null`);
-            errors.push(`Circle ${i}: returned null`);
+      try {
+        // Load circles in batches for better performance
+        const BATCH_SIZE = 5;
+        const batches = Math.ceil(total / BATCH_SIZE);
+        
+        for (let batch = 0; batch < batches; batch++) {
+          const startIndex = batch * BATCH_SIZE + 1;
+          const endIndex = Math.min(startIndex + BATCH_SIZE - 1, total);
+          
+          console.log(`Loading batch ${batch + 1}/${batches} (circles ${startIndex}-${endIndex})...`);
+          
+          // Load circles in parallel within each batch
+          const batchPromises = [];
+          for (let i = startIndex; i <= endIndex; i++) {
+            batchPromises.push(loadSingleCircle(i));
           }
-        } catch (error) {
-          console.error(`❌ Error loading circle ${i}:`, error);
-          errors.push(`Circle ${i}: ${error}`);
+          
+          try {
+            const batchResults = await Promise.allSettled(batchPromises);
+            
+            batchResults.forEach((result, index) => {
+              const circleIndex = startIndex + index;
+              setLoadingProgress({ current: circleIndex, total });
+              
+              if (result.status === 'fulfilled' && result.value) {
+                loadedCircles.push(result.value);
+                console.log(`✅ Circle ${circleIndex} loaded:`, result.value.name);
+              } else {
+                console.log(`❌ Circle ${circleIndex} failed:`, result.status === 'rejected' ? result.reason : 'returned null');
+                errors.push(`Circle ${circleIndex}: ${result.status === 'rejected' ? result.reason : 'returned null'}`);
+              }
+            });
+            
+          } catch (error) {
+            console.error(`❌ Error loading batch ${batch + 1}:`, error);
+            errors.push(`Batch ${batch + 1}: ${error}`);
+          }
+          
+          // Small delay between batches to avoid overwhelming the RPC
+          if (batch < batches - 1) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+
+        console.log(`✅ Loading complete! Loaded ${loadedCircles.length}/${total} circles`);
+        console.log(`Errors encountered:`, errors);
+        setCircles(loadedCircles);
+        setLoadingProgress({ current: total, total });
+        
+        // Set error if too many circles failed to load
+        if (errors.length > total * 0.5) {
+          setLoadingError(`Failed to load ${errors.length} out of ${total} circles. Please try again.`);
         }
         
-        // Small delay to avoid overwhelming the RPC
-        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('❌ Critical error loading circles:', error);
+        setLoadingError(`Failed to load circles: ${error}`);
+        setLoadingProgress({ current: 0, total: 0 });
       }
-
-      console.log(`✅ Loading complete! Loaded ${loadedCircles.length}/${total} circles`);
-      console.log(`Errors encountered:`, errors);
-      setCircles(loadedCircles);
-      setLoadingProgress({ current: total, total });
     };
 
     loadCircles();
@@ -116,9 +157,9 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
       const transformedCircle: CircleInfo = {
         id: circleId.toString(),
         name: circleData.name || `Circle #${circleId}`,
-        tags: circleData.tags || [],
+        tags: [...(circleData.tags || [])],
         creator: circleData.creator || "0x0",
-        members: circleData.members || [],
+        members: [...(circleData.members || [])],
         totalValue: circleData.totalValue || 0n,
         minInvestment: circleData.minInvestment || 0n,
         createdAt: circleData.createdAt || 0n,
@@ -167,9 +208,9 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
     return Array.from(tagSet).sort();
   }, [circles]);
 
-  // Filter circles based on search and filters
-  const filteredCircles = useMemo(() => {
-    return circles.filter(circle => {
+  // Filter and sort circles based on search and filters
+  const filteredAndSortedCircles = useMemo(() => {
+    let filtered = circles.filter(circle => {
       // Search filter
       if (searchTerm && !circle.name.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
@@ -180,15 +221,66 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
         return false;
       }
 
-      // Min investment filter
-      if (Number(circle.minInvestment) / 1000000 < minInvestmentFilter) {
+      // Investment range filter
+      const minInvestment = Number(circle.minInvestment) / 1000000;
+      const totalValue = Number(circle.totalValue) / 1000000;
+      
+      if (minInvestment < minInvestmentFilter || minInvestment > maxInvestmentFilter) {
         return false;
+      }
+
+      // Member count filter
+      const memberCount = circle.members.length;
+      if (memberCount < memberCountFilter.min || memberCount > memberCountFilter.max) {
+        return false;
+      }
+
+      // Date filter
+      if (dateFilter.start || dateFilter.end) {
+        const circleDate = new Date(Number(circle.createdAt) * 1000);
+        const startDate = dateFilter.start ? new Date(dateFilter.start) : null;
+        const endDate = dateFilter.end ? new Date(dateFilter.end) : null;
+        
+        if (startDate && circleDate < startDate) return false;
+        if (endDate && circleDate > endDate) return false;
       }
 
       // Only show active circles
       return circle.isActive;
     });
-  }, [circles, searchTerm, selectedTags, minInvestmentFilter]);
+
+    // Sort circles
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "name":
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case "createdAt":
+          aValue = Number(a.createdAt);
+          bValue = Number(b.createdAt);
+          break;
+        case "totalValue":
+          aValue = Number(a.totalValue);
+          bValue = Number(b.totalValue);
+          break;
+        case "members":
+          aValue = a.members.length;
+          bValue = b.members.length;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [circles, searchTerm, selectedTags, minInvestmentFilter, maxInvestmentFilter, memberCountFilter, dateFilter, sortBy, sortOrder]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags(prev => 
@@ -202,6 +294,21 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
     setSearchTerm("");
     setSelectedTags([]);
     setMinInvestmentFilter(0);
+    setMaxInvestmentFilter(1000);
+    setMemberCountFilter({ min: 0, max: 12 });
+    setDateFilter({ start: "", end: "" });
+    setSortBy("createdAt");
+    setSortOrder("desc");
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    setLoadingError(null);
+    // Trigger reload by updating a dependency
+    if (totalCircles) {
+      setCircles([]);
+      setLoadingProgress({ current: 0, total: 0 });
+    }
   };
 
   return (
@@ -226,7 +333,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-white/60" />
               <span className="text-white/60 text-sm">Filters</span>
-              {(searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0) && (
+              {(searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0 || maxInvestmentFilter < 1000 || memberCountFilter.min > 0 || memberCountFilter.max < 12 || dateFilter.start || dateFilter.end) && (
                 <Button
                   onClick={handleClearFilters}
                   variant="ghost"
@@ -261,23 +368,142 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
               </div>
             )}
 
-            {/* Min Investment Filter */}
-            <div>
-              <label className="text-white/60 text-xs mb-2 block">
-                Min Investment: {formatCurrency(minInvestmentFilter)}
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1000"
-                step="10"
-                value={minInvestmentFilter}
-                onChange={(e) => setMinInvestmentFilter(Number(e.target.value))}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-              />
+            {/* Investment Range Filter */}
+            <div className="space-y-3">
+              <label className="text-white/60 text-xs block">Investment Range</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">Min: {formatCurrency(minInvestmentFilter)}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1000"
+                    step="10"
+                    value={minInvestmentFilter}
+                    onChange={(e) => setMinInvestmentFilter(Number(e.target.value))}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                </div>
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">Max: {formatCurrency(maxInvestmentFilter)}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1000"
+                    step="10"
+                    value={maxInvestmentFilter}
+                    onChange={(e) => setMaxInvestmentFilter(Number(e.target.value))}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Member Count Filter */}
+            <div className="space-y-3">
+              <label className="text-white/60 text-xs block">Member Count</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">Min: {memberCountFilter.min}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="12"
+                    step="1"
+                    value={memberCountFilter.min}
+                    onChange={(e) => setMemberCountFilter(prev => ({ ...prev, min: Number(e.target.value) }))}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                </div>
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">Max: {memberCountFilter.max}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="12"
+                    step="1"
+                    value={memberCountFilter.max}
+                    onChange={(e) => setMemberCountFilter(prev => ({ ...prev, max: Number(e.target.value) }))}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Date Filter */}
+            <div className="space-y-3">
+              <label className="text-white/60 text-xs block">Created Date</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">From</label>
+                  <input
+                    type="date"
+                    value={dateFilter.start}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-genki-green"
+                  />
+                </div>
+                <div>
+                  <label className="text-white/40 text-xs mb-1 block">To</label>
+                  <input
+                    type="date"
+                    value={dateFilter.end}
+                    onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-genki-green"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sort Options */}
+            <div className="space-y-3">
+              <label className="text-white/60 text-xs block">Sort By</label>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-genki-green"
+                >
+                  <option value="createdAt">Date Created</option>
+                  <option value="name">Name</option>
+                  <option value="totalValue">Total Value</option>
+                  <option value="members">Members</option>
+                </select>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-genki-green"
+                >
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Error State */}
+        {loadingError && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-red-400 text-xs">!</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-red-400 font-medium mb-1">Loading Error</h3>
+                <p className="text-red-300 text-sm mb-3">{loadingError}</p>
+                <div className="flex gap-2">
+                  <Button onClick={handleRetry} size="sm" variant="outline" className="text-red-400 border-red-400 hover:bg-red-400/10">
+                    Retry ({retryCount > 0 && `${retryCount} attempts`})
+                  </Button>
+                  <Button onClick={handleClearFilters} size="sm" variant="ghost" className="text-red-400 hover:bg-red-400/10">
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Results Count */}
         <div className="flex items-center justify-between">
@@ -296,7 +522,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
               </div>
             ) : (
               <div className="space-y-1">
-                <div>{`${filteredCircles.length} of ${circles.length} circles`}</div>
+                <div>{`${filteredAndSortedCircles.length} of ${circles.length} circles`}</div>
                 {circles.length > 0 && (
                   <div className="text-xs text-white/40">
                     Total expected: {Number(totalCircles || 0)} circles
@@ -312,7 +538,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
               console.log("=== BROWSE CIRCLES DEBUG ===");
               console.log("Total circles:", totalCircles);
               console.log("Circles loaded:", circles);
-              console.log("Filtered circles:", filteredCircles);
+              console.log("Filtered circles:", filteredAndSortedCircles);
               console.log("Loading states:", loadingCircles);
               console.log("Search term:", searchTerm);
               console.log("Selected tags:", selectedTags);
@@ -339,7 +565,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
                 </div>
               </Card>
             ))
-          ) : filteredCircles.length === 0 ? (
+          ) : filteredAndSortedCircles.length === 0 ? (
             // Empty state
             <Card variant="glass" className="p-8 text-center">
               <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
@@ -347,11 +573,11 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">No Circles Found</h3>
               <p className="text-white/60 text-sm mb-4">
-                {searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0
+                {searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0 || maxInvestmentFilter < 1000 || memberCountFilter.min > 0 || memberCountFilter.max < 12 || dateFilter.start || dateFilter.end
                   ? "Try adjusting your filters to see more circles."
                   : "No circles are available at the moment."}
               </p>
-              {(searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0) && (
+              {(searchTerm || selectedTags.length > 0 || minInvestmentFilter > 0 || maxInvestmentFilter < 1000 || memberCountFilter.min > 0 || memberCountFilter.max < 12 || dateFilter.start || dateFilter.end) && (
                 <Button onClick={handleClearFilters} variant="outline" size="sm">
                   Clear Filters
                 </Button>
@@ -359,7 +585,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
             </Card>
           ) : (
             // Circles list
-            filteredCircles.map((circle) => (
+            filteredAndSortedCircles.map((circle) => (
               <CircleCard
                 key={circle.id}
                 circle={circle}
