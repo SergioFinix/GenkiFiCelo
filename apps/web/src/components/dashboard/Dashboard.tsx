@@ -6,6 +6,7 @@ import { DailyWorkout } from "./DailyWorkout";
 import { AICoach } from "./AICoach";
 import { useActiveAccount } from "thirdweb/react";
 import { formatAddress } from "@/lib/utils/helpers";
+import { DisconnectWalletButton } from "@/components/web3/DisconnectWallet";
 
 export function Dashboard() {
   const account = useActiveAccount();
@@ -25,13 +26,20 @@ export function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
         {/* Dashboard Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back!
-          </h1>
-          <p className="text-white/60">
-            Connected as {formatAddress(account.address)}
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Welcome back!
+            </h1>
+            <p className="text-white/60">
+              Connected as {formatAddress(account.address)}
+            </p>
+          </div>
+          <DisconnectWalletButton 
+            variant="outline"
+            size="sm"
+            className="self-start sm:self-center"
+          />
         </div>
 
         {/* Stats Section */}

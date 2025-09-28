@@ -8,6 +8,7 @@ import { useActiveAccount } from "thirdweb/react"
 
 import { Button } from "@/components/ui/Button"
 import { CustomConnectButton } from "@/components/web3/ConnectWallet"
+import { DisconnectButton } from "@/components/web3/DisconnectWallet"
 import { formatAddress } from "@/lib/utils/helpers"
 import {
   Sheet,
@@ -62,8 +63,18 @@ export function Navbar() {
                 ))}
                 <div className="mt-6 pt-6 border-t border-white/10">
                   {account ? (
-                    <div className="text-white/60 text-sm">
-                      Connected: {formatAddress(account.address)}
+                    <div className="space-y-4">
+                      <div className="text-white/60 text-sm">
+                        Connected: {formatAddress(account.address)}
+                      </div>
+                      <div className="flex gap-2">
+                        <Link href="/dashboard" className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full">
+                            Dashboard
+                          </Button>
+                        </Link>
+                        <DisconnectButton />
+                      </div>
                     </div>
                   ) : (
                     <CustomConnectButton className="w-full" />
@@ -114,6 +125,7 @@ export function Navbar() {
                 <div className="text-white/60 text-sm">
                   {formatAddress(account.address)}
                 </div>
+                <DisconnectButton />
               </div>
             ) : (
               <CustomConnectButton />
