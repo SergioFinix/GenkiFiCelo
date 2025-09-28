@@ -6,10 +6,12 @@ import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { useFarcasterSDK } from "@/hooks/useFarcasterSDK"; // ← Agregar esta línea
 
 export default function HomePage() {
   const account = useActiveAccount();
 
+  useFarcasterSDK();
   // If wallet is connected, show dashboard
   if (account) {
     return <Dashboard />;

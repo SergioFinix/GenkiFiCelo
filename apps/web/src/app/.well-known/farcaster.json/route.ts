@@ -1,8 +1,5 @@
 export async function GET() {
-  const appUrl = process.env.NEXT_PUBLIC_URL;
-
-  // The .well-known/farcaster.json route is used to provide the configuration for the Frame.
-  // You need to generate the accountAssociation payload and signature using this link:
+  const appUrl = process.env.NEXT_PUBLIC_URL || "https://genki-fi-celo-web.vercel.app";
 
   const config = {
     accountAssociation: {
@@ -12,13 +9,13 @@ export async function GET() {
     },
     frame: {
       version: "1",
-      name: "Birthday V2",
-      iconUrl: `${appUrl}/celosplash.png`,
+      name: "GenkiFi",
+      iconUrl: `${appUrl}/icon.png`,
       homeUrl: appUrl,
-      imageUrl: `${appUrl}/tipme.png`,
-      buttonTitle: "Launch Frame",
-      splashImageUrl: `${appUrl}/celosplash.png`,
-      splashBackgroundColor: "#f7f7f7",
+      imageUrl: `${appUrl}/opengraph-image.png`,
+      buttonTitle: "Launch GenkiFi",
+      splashImageUrl: `${appUrl}/icon.png`,
+      splashBackgroundColor: "#000000",
       webhookUrl: `${appUrl}/api/webhook`,
     },
   };

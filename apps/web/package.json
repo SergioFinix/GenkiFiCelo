@@ -12,6 +12,7 @@
   "dependencies": {
     "@farcaster/frame-core": "latest",
     "@farcaster/frame-sdk": "^0.0.61",
+    "@farcaster/miniapp-sdk": "^0.1.10",
     "@farcaster/quick-auth": "latest",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",

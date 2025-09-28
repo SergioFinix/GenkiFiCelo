@@ -99,6 +99,9 @@ importers:
       '@farcaster/frame-sdk':
         specifier: ^0.0.61
         version: 0.0.61(typescript@5.9.2)(zod@3.25.76)
+      '@farcaster/miniapp-sdk':
+        specifier: ^0.1.10
+        version: 0.1.10(typescript@5.9.2)(zod@3.25.76)
       '@farcaster/quick-auth':
         specifier: latest
         version: 0.0.8(typescript@5.9.2)
@@ -1219,6 +1222,22 @@ packages:
       - encoding
       - typescript
       - utf-8-validate
+    dev: false
+
+  /@farcaster/miniapp-sdk@0.1.10(typescript@5.9.2)(zod@3.25.76):
+    resolution: {integrity: sha512-ueoEAH3N7hIrV+L9pXdLJZpOY1GsOuwKN7MckouSEWY98H5A7KVajyGmGSDDVzjRWpu7Vndu4NZUHoOhF4nTOA==}
+    dependencies:
+      '@farcaster/miniapp-core': 0.3.9(typescript@5.9.2)
+      '@farcaster/quick-auth': 0.0.6(typescript@5.9.2)
+      comlink: 4.4.2
+      eventemitter3: 5.0.1
+      ox: 0.4.4(typescript@5.9.2)(zod@3.25.76)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+      - zod
     dev: false
 
   /@farcaster/quick-auth@0.0.6(typescript@5.9.2):
