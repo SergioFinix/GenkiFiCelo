@@ -1,5 +1,5 @@
 "use client";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 // Use any types for Farcaster SDK compatibility
 type FrameContext = any;
 type AddFrameResult = any;
@@ -33,11 +33,17 @@ export function MiniAppProvider({ children, addMiniAppOnLoad }: MiniAppProviderP
 
   const setMiniAppReady = useCallback(async () => {
     try {
-      const context = await sdk.context;
-      if (context) {
-        setContext(context);
+      // Check if we're in a Farcaster environment
+      if (typeof window !== 'undefined' && (window as any).farcaster) {
+        const context = await sdk.context;
+        if (context) {
+          setContext(context);
+        }
+        await sdk.actions.ready();
+        console.log("Farcaster MiniApp SDK initialized successfully");
+      } else {
+        console.log("Not in Farcaster environment, skipping SDK initialization");
       }
-      await sdk.actions.ready();
     } catch (err) {
       console.error("SDK initialization error:", err);
     } finally {
