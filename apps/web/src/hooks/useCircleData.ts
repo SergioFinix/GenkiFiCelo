@@ -49,9 +49,9 @@ export function useCircleData(circleId: number) {
         const transformedData: CircleInfo = {
           id: circleId.toString(),
           name: circleData.name || `Circle #${circleId}`,
-          tags: circleData.tags || [],
+          tags: [...(circleData.tags || [])],
           creator: circleData.creator || "0x0",
-          members: circleData.members || [],
+          members: [...(circleData.members || [])],
           totalValue: circleData.totalValue || 0n,
           minInvestment: circleData.minInvestment || 0n,
           createdAt: circleData.createdAt || 0n,

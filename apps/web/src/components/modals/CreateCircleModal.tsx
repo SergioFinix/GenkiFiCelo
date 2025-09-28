@@ -117,7 +117,7 @@ export function CreateCircleModal({ isOpen, onClose, onSuccess }: CreateCircleMo
       // Prepare the contract call
       const transaction = prepareContractCall({
         contract: genkiFiCoreContract,
-        method: "function createCircle(string _name, string[] _tags, uint256 _minInvestment) returns (uint256)",
+        method: "createCircle",
         params: [
           formData.name.trim(),
           formData.tags,

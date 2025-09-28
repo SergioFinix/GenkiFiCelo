@@ -1,5 +1,5 @@
 import { createThirdwebClient } from "thirdweb";
-import { celo, celoAlfajores } from "thirdweb/chains";
+import { celo } from "thirdweb/chains";
 
 // Create Thirdweb client
 export const client = createThirdwebClient({
@@ -7,4 +7,4 @@ export const client = createThirdwebClient({
 });
 
 // Export chains for use in components
-export { celo, celoAlfajores };
+export { celo };

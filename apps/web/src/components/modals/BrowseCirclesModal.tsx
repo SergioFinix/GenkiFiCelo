@@ -649,7 +649,7 @@ function CircleCard({
   circle: CircleInfo; 
   onJoin: () => void; 
   isUserMember: boolean;
-  cusdDecimals: bigint | undefined;
+  cusdDecimals: number | undefined;
   getDisplayValue: (rawValue: bigint | number, decimals: number) => number;
 }) {
   const availableSpots = 12 - circle.members.length;
