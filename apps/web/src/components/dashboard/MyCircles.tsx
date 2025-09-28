@@ -12,7 +12,7 @@ import { Plus, Users, TrendingUp, Settings, ExternalLink } from "lucide-react";
 import React, { useState } from "react";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { readContract, getContract } from "thirdweb";
-import { genkiFiCoreContract, CONTRACT_STATUS, CONTRACT_ADDRESSES, GENKIFI_CORE_ABI } from "@/lib/thirdweb/contracts";
+import { genkiFiCoreContract, cusdTokenContract, CONTRACT_STATUS, CONTRACT_ADDRESSES, GENKIFI_CORE_ABI } from "@/lib/thirdweb/contracts";
 import { defaultChain, client } from "@/lib/thirdweb/client";
 
 export function MyCircles() {
@@ -23,6 +23,35 @@ export function MyCircles() {
   const [joinCircleId, setJoinCircleId] = useState<string>("");
 
   const account = useActiveAccount();
+
+  // Read cUSD token decimals
+  const { data: cusdDecimals } = useReadContract({
+    contract: cusdTokenContract,
+    method: "decimals",
+    queryOptions: {
+      enabled: CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED
+    }
+  });
+
+  // Helper function to convert raw value to display value
+  const getDisplayValue = (rawValue: bigint | number, decimals: number) => {
+    const numValue = Number(rawValue);
+    
+    // Check if this is a legacy 6-decimal value (1,000,000 with 18 decimals)
+    const isLegacyValue = numValue === 1000000 && decimals === 18;
+    
+    let result;
+    if (isLegacyValue) {
+      // For legacy values, use 6 decimals
+      result = numValue / 1000000;
+    } else {
+      // For new values, use actual decimals
+      result = numValue / Math.pow(10, decimals);
+    }
+    
+    console.log("getDisplayValue:", { rawValue, numValue, decimals, isLegacyValue, result });
+    return result;
+  };
 
   // Get user's circles from the smart contract (only if contract is deployed)
   const { data: userCircles, isLoading: isLoadingCircles, error: userCirclesError } = useReadContract({
@@ -313,6 +342,35 @@ function CircleCard({
   const [circleInfo, setCircleInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Read cUSD token decimals
+  const { data: cusdDecimals } = useReadContract({
+    contract: cusdTokenContract,
+    method: "decimals",
+    queryOptions: {
+      enabled: CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED
+    }
+  });
+
+  // Helper function to convert raw value to display value
+  const getDisplayValue = (rawValue: bigint | number, decimals: number) => {
+    const numValue = Number(rawValue);
+    
+    // Check if this is a legacy 6-decimal value (1,000,000 with 18 decimals)
+    const isLegacyValue = numValue === 1000000 && decimals === 18;
+    
+    let result;
+    if (isLegacyValue) {
+      // For legacy values, use 6 decimals
+      result = numValue / 1000000;
+    } else {
+      // For new values, use actual decimals
+      result = numValue / Math.pow(10, decimals);
+    }
+    
+    console.log("getDisplayValue:", { rawValue, numValue, decimals, isLegacyValue, result });
+    return result;
+  };
+
   // Get circle information
   const { data: circleData, isLoading: isLoadingInfo, error } = useReadContract({
     contract: genkiFiCoreContract,
@@ -423,13 +481,13 @@ function CircleCard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-lg font-bold text-white">
-              {formatCurrency(Number(circleInfo?.totalValue || 0) / 1000000)}
+              {cusdDecimals ? formatCurrency(getDisplayValue(circleInfo?.totalValue || 0, Number(cusdDecimals)), "cUSD") : "Loading..."}
             </div>
             <div className="text-xs text-white/60">Total Value</div>
           </div>
           <div>
             <div className="text-lg font-bold text-genki-green">
-              {formatCurrency(Number(circleInfo?.minInvestment || 0) / 1000000)}
+              {cusdDecimals ? formatCurrency(getDisplayValue(circleInfo?.minInvestment || 0, Number(cusdDecimals)), "cUSD") : "Loading..."}
             </div>
             <div className="text-xs text-white/60">Min Investment</div>
           </div>

@@ -6,7 +6,7 @@ import { readContract, getContract } from "thirdweb";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { genkiFiCoreContract, CONTRACT_STATUS, CONTRACT_ADDRESSES, GENKIFI_CORE_ABI } from "@/lib/thirdweb/contracts";
+import { genkiFiCoreContract, cusdTokenContract, CONTRACT_STATUS, CONTRACT_ADDRESSES, GENKIFI_CORE_ABI } from "@/lib/thirdweb/contracts";
 import { formatCurrency, generateCircleColor } from "@/lib/utils/helpers";
 import { useCircleData, CircleInfo } from "@/hooks/useCircleData";
 import { defaultChain, client } from "@/lib/thirdweb/client";
@@ -34,6 +34,35 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
   const [loadingProgress, setLoadingProgress] = useState({ current: 0, total: 0 });
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Read cUSD token decimals
+  const { data: cusdDecimals } = useReadContract({
+    contract: cusdTokenContract,
+    method: "decimals",
+    queryOptions: {
+      enabled: CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED
+    }
+  });
+
+  // Helper function to convert raw value to display value
+  const getDisplayValue = (rawValue: bigint | number, decimals: number) => {
+    const numValue = Number(rawValue);
+    
+    // Check if this is a legacy 6-decimal value (1,000,000 with 18 decimals)
+    const isLegacyValue = numValue === 1000000 && decimals === 18;
+    
+    let result;
+    if (isLegacyValue) {
+      // For legacy values, use 6 decimals
+      result = numValue / 1000000;
+    } else {
+      // For new values, use actual decimals
+      result = numValue / Math.pow(10, decimals);
+    }
+    
+    console.log("getDisplayValue:", { rawValue, numValue, decimals, isLegacyValue, result });
+    return result;
+  };
 
   // Get total circles count
   const { data: totalCircles, isLoading: isLoadingTotal } = useReadContract({
@@ -221,9 +250,9 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
         return false;
       }
 
-      // Investment range filter
-      const minInvestment = Number(circle.minInvestment) / 1000000;
-      const totalValue = Number(circle.totalValue) / 1000000;
+      // Investment range filter - use correct decimal calculation
+      const minInvestment = cusdDecimals ? getDisplayValue(circle.minInvestment, Number(cusdDecimals)) : Number(circle.minInvestment) / 1000000;
+      const totalValue = cusdDecimals ? getDisplayValue(circle.totalValue, Number(cusdDecimals)) : Number(circle.totalValue) / 1000000;
       
       if (minInvestment < minInvestmentFilter || minInvestment > maxInvestmentFilter) {
         return false;
@@ -280,7 +309,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
     });
 
     return filtered;
-  }, [circles, searchTerm, selectedTags, minInvestmentFilter, maxInvestmentFilter, memberCountFilter, dateFilter, sortBy, sortOrder]);
+  }, [circles, searchTerm, selectedTags, minInvestmentFilter, maxInvestmentFilter, memberCountFilter, dateFilter, sortBy, sortOrder, cusdDecimals]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags(prev => 
@@ -591,6 +620,8 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
                 circle={circle}
                 onJoin={() => onJoinCircle(circle.id)}
                 isUserMember={account?.address ? circle.members.includes(account.address) : false}
+                cusdDecimals={cusdDecimals}
+                getDisplayValue={getDisplayValue}
               />
             ))
           )}
@@ -611,11 +642,15 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
 function CircleCard({ 
   circle, 
   onJoin, 
-  isUserMember 
+  isUserMember,
+  cusdDecimals,
+  getDisplayValue
 }: { 
   circle: CircleInfo; 
   onJoin: () => void; 
   isUserMember: boolean;
+  cusdDecimals: bigint | undefined;
+  getDisplayValue: (rawValue: bigint | number, decimals: number) => number;
 }) {
   const availableSpots = 12 - circle.members.length;
   const isFull = availableSpots === 0;
@@ -665,13 +700,13 @@ function CircleCard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-lg font-bold text-white">
-              {formatCurrency(Number(circle.totalValue) / 1000000)}
+              {cusdDecimals ? formatCurrency(getDisplayValue(circle.totalValue, Number(cusdDecimals)), "cUSD") : "Loading..."}
             </div>
             <div className="text-xs text-white/60">Total Value</div>
           </div>
           <div>
             <div className="text-lg font-bold text-genki-green">
-              {formatCurrency(Number(circle.minInvestment) / 1000000)}
+              {cusdDecimals ? formatCurrency(getDisplayValue(circle.minInvestment, Number(cusdDecimals)), "cUSD") : "Loading..."}
             </div>
             <div className="text-xs text-white/60">Min Investment</div>
           </div>
