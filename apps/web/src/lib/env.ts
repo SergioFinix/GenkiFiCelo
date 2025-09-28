@@ -7,11 +7,11 @@ export const env = createEnv({
     JWT_SECRET: z.string().min(1),
   },
   client: {
-    NEXT_PUBLIC_URL: z.string().min(1).optional().default("http://localhost:3000"),
+    NEXT_PUBLIC_URL: z.string().min(1).optional().default("https://genki-fi-celo-web.vercel.app"),
     NEXT_PUBLIC_APP_ENV: z
       .enum(["development", "production"])
       .optional()
-      .default("development"),
+      .default("production"),
     NEXT_PUBLIC_FARCASTER_HEADER: z.string().min(1).optional().default("build-time-placeholder"),
     NEXT_PUBLIC_FARCASTER_PAYLOAD: z.string().min(1).optional().default("build-time-placeholder"),
     NEXT_PUBLIC_FARCASTER_SIGNATURE: z.string().min(1).optional().default("build-time-placeholder"),
