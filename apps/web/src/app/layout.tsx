@@ -29,8 +29,6 @@ const frame = {
 export const metadata: Metadata = {
   title: 'GenkiFi',
   description: 'GenkiFi is the first gamified social DeFi platform built specifically for emerging markets on Celo blockchain',
-  manifest: '/manifest.json', // ← Agregar esta línea
-  themeColor: '#00D4AA', // ← Agregar esta línea
   openGraph: {
     title: 'GenkiFi',
     description: 'GenkiFi is the first gamified social DeFi platform built specifically for emerging markets on Celo blockchain',
@@ -38,10 +36,6 @@ export const metadata: Metadata = {
   },
   other: {
     "fc:frame": JSON.stringify(frame),
-    // Agregar estas líneas para PWA
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "GenkiFi",
   },
 };
 

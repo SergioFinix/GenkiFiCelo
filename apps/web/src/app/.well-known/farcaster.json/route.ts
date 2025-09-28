@@ -1,15 +1,27 @@
-import { getFarcasterManifest } from "@/lib/warpcast";
-import { NextResponse } from "next/server";
-
 export async function GET() {
-  try {
-    const manifest = await getFarcasterManifest();
-    return NextResponse.json(manifest);
-  } catch (error) {
-    console.error("Error generating manifest:", error);
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
-  }
+  const appUrl = process.env.NEXT_PUBLIC_URL;
+
+  // The .well-known/farcaster.json route is used to provide the configuration for the Frame.
+  // You need to generate the accountAssociation payload and signature using this link:
+
+  const config = {
+    accountAssociation: {
+      header: "",
+      payload: "",
+      signature: "",
+    },
+    frame: {
+      version: "1",
+      name: "Birthday V2",
+      iconUrl: `${appUrl}/celosplash.png`,
+      homeUrl: appUrl,
+      imageUrl: `${appUrl}/tipme.png`,
+      buttonTitle: "Launch Frame",
+      splashImageUrl: `${appUrl}/celosplash.png`,
+      splashBackgroundColor: "#f7f7f7",
+      webhookUrl: `${appUrl}/api/webhook`,
+    },
+  };
+
+  return Response.json(config);
 }
