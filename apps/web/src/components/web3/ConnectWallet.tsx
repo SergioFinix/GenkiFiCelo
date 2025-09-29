@@ -4,10 +4,35 @@ import { ConnectButton } from "thirdweb/react";
 import { Button } from "@/components/ui/Button";
 import { inAppWallet, createWallet } from "thirdweb/wallets";
 import { celo, client } from "@/lib/thirdweb/client";
-import { useMiniApp } from "@/contexts/miniapp-context";
 import { useEffect, useState } from "react";
 
-// Custom wallet configurations for web
+// Detección simple de móvil
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      setIsMobile(isMobileDevice);
+    }
+  }, []);
+
+  return { isMobile, isClient };
+}
+
+// Configuración para móvil (solo Farcaster)
+const mobileWallets = [
+  inAppWallet({
+    auth: {
+      options: ["farcaster"],
+    },
+  }),
+];
+
+// Configuración para web (todas las opciones)
 const webWallets = [
   inAppWallet({
     auth: {
@@ -31,15 +56,6 @@ const webWallets = [
   createWallet("io.zerion.wallet"),
 ];
 
-// Farcaster-only wallet for mobile
-const farcasterWallets = [
-  inAppWallet({
-    auth: {
-      options: ["farcaster"], // Solo Farcaster para móvil
-    },
-  }),
-];
-
 interface ConnectWalletProps {
   className?: string;
   size?: "default" | "sm" | "lg" | "xl";
@@ -51,38 +67,7 @@ export function ConnectWalletButton({
   size = "lg",
   variant = "default"
 }: ConnectWalletProps) {
-  const [isClient, setIsClient] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isFarcasterEnv, setIsFarcasterEnv] = useState(false);
-  
-  const { context, isMiniAppReady } = useMiniApp();
-
-  useEffect(() => {
-    setIsClient(true);
-    
-    if (typeof window !== 'undefined') {
-      // Detectar si es móvil
-      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-      setIsMobile(isMobileDevice);
-      
-      // Detectar si está en Farcaster
-      const isInFarcaster = window.location.href.includes('farcaster') || 
-                           window.location.href.includes('warpcast') ||
-                           (window as any).farcaster ||
-                           context?.client ||
-                           isMiniAppReady;
-      setIsFarcasterEnv(isInFarcaster);
-      
-      console.log("Environment detection:", {
-        isMobile: isMobileDevice,
-        isFarcaster: isInFarcaster,
-        userAgent: userAgent,
-        url: window.location.href,
-        context: !!context
-      });
-    }
-  }, [context, isMiniAppReady]);
+  const { isMobile, isClient } = useIsMobile();
 
   // Evitar problemas de hidratación
   if (!isClient) {
@@ -91,13 +76,13 @@ export function ConnectWalletButton({
     );
   }
 
-  // Si estamos en móvil Y en Farcaster, usar solo Farcaster
-  if (isMobile && isFarcasterEnv) {
+  // En móvil, usar solo Farcaster
+  if (isMobile) {
     return (
       <ConnectButton
         client={client}
         chain={celo}
-        wallets={farcasterWallets}
+        wallets={mobileWallets}
         connectButton={{
           label: "Connect with Farcaster",
           className: `w-full h-12 px-6 py-3 bg-gradient-primary text-white rounded-xl font-medium transition-all duration-200 hover:shadow-glow-green hover:scale-105 active:scale-95 ${className}`,
@@ -112,7 +97,7 @@ export function ConnectWalletButton({
     );
   }
 
-  // Si estamos en web, usar todas las opciones de wallet
+  // En web, usar todas las opciones
   return (
     <ConnectButton
       client={client}
