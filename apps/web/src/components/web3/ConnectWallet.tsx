@@ -1,6 +1,6 @@
 "use client";
 
-import { SmartConnectButton } from "./SmartConnectButton";
+import { AuthConnectButton } from "./AuthConnectButton";
 
 
 
@@ -18,11 +18,10 @@ export function ConnectWalletButton({
   onSuccess
 }: ConnectWalletProps) {
   return (
-    <SmartConnectButton 
+    <AuthConnectButton 
       className={className}
       size={size}
       variant={variant}
-      onSuccess={onSuccess}
     />
   );
 }
@@ -38,7 +37,7 @@ export function CustomConnectButton({
   children = "Connect Wallet"
 }: CustomConnectButtonProps) {
   return (
-    <SmartConnectButton 
+    <AuthConnectButton 
       className={className}
     />
   );
