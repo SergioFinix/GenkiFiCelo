@@ -31,12 +31,12 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className={cn(
-        "w-full bg-glass backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl",
+        "w-full bg-glass backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl flex flex-col max-h-[90vh]",
         sizeClasses[size],
         className
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 flex-shrink-0">
           <h2 className="text-xl font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
@@ -46,8 +46,8 @@ const Modal: React.FC<ModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - Scrollable */}
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {children}
         </div>
       </div>

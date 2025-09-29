@@ -166,7 +166,7 @@ export function CreateCircleModal({ isOpen, onClose, onSuccess }: CreateCircleMo
       isOpen={isOpen}
       onClose={handleClose}
       title="Create Investment Circle"
-      size="lg"
+      size="xl"
     >
       <div className="space-y-6">
         {/* Circle Name */}

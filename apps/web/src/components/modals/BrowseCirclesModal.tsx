@@ -341,7 +341,7 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Browse Circles">
+    <Modal isOpen={isOpen} onClose={onClose} title="Browse Circles" size="xl">
       <div className="space-y-6">
         {/* Search and Filters */}
         <div className="space-y-4">
@@ -561,28 +561,10 @@ export function BrowseCirclesModal({ isOpen, onClose, onJoinCircle }: BrowseCirc
             )}
           </div>
           
-          {/* Debug button - remove in production */}
-          <Button
-            onClick={() => {
-              console.log("=== BROWSE CIRCLES DEBUG ===");
-              console.log("Total circles:", totalCircles);
-              console.log("Circles loaded:", circles);
-              console.log("Filtered circles:", filteredAndSortedCircles);
-              console.log("Loading states:", loadingCircles);
-              console.log("Search term:", searchTerm);
-              console.log("Selected tags:", selectedTags);
-              console.log("Min investment filter:", minInvestmentFilter);
-            }}
-            variant="ghost"
-            size="sm"
-            className="text-white/40 hover:text-white"
-          >
-            Debug
-          </Button>
         </div>
 
         {/* Circles List */}
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+        <div className="space-y-4 max-h-80 overflow-y-auto">
           {isLoadingTotal ? (
             // Loading skeleton
             Array.from({ length: 3 }).map((_, i) => (

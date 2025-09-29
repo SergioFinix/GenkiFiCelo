@@ -334,7 +334,7 @@ export function JoinCircleModal({ isOpen, onClose, circleId, onSuccess }: JoinCi
   // Loading state
   if (isLoadingCircle) {
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} title="Join Circle" size="md">
+      <Modal isOpen={isOpen} onClose={handleClose} title="Join Circle" size="lg">
         <div className="flex items-center justify-center py-8">
           <div className="text-white/60">Loading circle information...</div>
         </div>
@@ -345,7 +345,7 @@ export function JoinCircleModal({ isOpen, onClose, circleId, onSuccess }: JoinCi
   // Error state
   if (!circleInfo) {
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} title="Join Circle" size="md">
+      <Modal isOpen={isOpen} onClose={handleClose} title="Join Circle" size="lg">
         <div className="text-center py-8">
           <div className="text-red-400 mb-4">Circle not found</div>
           <Button onClick={handleClose} variant="outline">

@@ -47,6 +47,7 @@ export function Dashboard() {
           <UserStats />
         </div>
 
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Circles */}

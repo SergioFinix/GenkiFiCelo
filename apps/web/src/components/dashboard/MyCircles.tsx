@@ -6,7 +6,6 @@ import { CircleContract } from "@/components/web3/CircleContract";
 import { CreateCircleModal } from "@/components/modals/CreateCircleModal";
 import { JoinCircleModal } from "@/components/modals/JoinCircleModal";
 import { BrowseCirclesModal } from "@/components/modals/BrowseCirclesModal";
-import { ContractTest } from "@/components/debug/ContractTest";
 import { formatCurrency, generateCircleColor } from "@/lib/utils/helpers";
 import { Plus, Users, TrendingUp, Settings, ExternalLink } from "lucide-react";
 import React, { useState } from "react";
@@ -102,59 +101,6 @@ export function MyCircles() {
     // Refresh user circles or show success message
   };
 
-  // Test contract connectivity
-  const testContractConnectivity = async () => {
-    console.log("=== DETAILED CONTRACT DEBUGGING ===");
-    
-    // Step 1: Verify basic configuration
-    console.log("1. Basic Configuration:");
-    console.log("  - Contract address:", CONTRACT_ADDRESSES.GENKIFI_CORE);
-    console.log("  - Chain:", defaultChain.name, "(ID:", defaultChain.id, ")");
-    console.log("  - Client ID:", "c32dfba51fb18c067febf5989d042513");
-    console.log("  - Account:", account?.address);
-    console.log("  - Contract deployed status:", CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED);
-    
-    // Step 2: Verify contract instance
-    console.log("2. Contract Instance:");
-    console.log("  - genkiFiCoreContract:", genkiFiCoreContract);
-    console.log("  - Contract address in instance:", genkiFiCoreContract.address);
-    console.log("  - Contract chain in instance:", genkiFiCoreContract.chain);
-    
-    // Step 3: Verify ABI
-    console.log("3. ABI Verification:");
-    console.log("  - ABI length:", GENKIFI_CORE_ABI.length);
-    console.log("  - Functions in ABI:", GENKIFI_CORE_ABI.filter(item => item.type === 'function').map(f => f.name));
-    
-    // Step 4: Test with fresh contract
-    console.log("4. Fresh Contract Test:");
-    
-    try {
-      const freshContract = getContract({
-        client,
-        chain: defaultChain,
-        address: CONTRACT_ADDRESSES.GENKIFI_CORE,
-        abi: GENKIFI_CORE_ABI,
-      });
-      
-      console.log("  - Fresh contract created:", freshContract);
-      
-      // Test with the fresh contract
-      console.log("  - Testing getTotalCircles with fresh contract...");
-      const result = await readContract({
-        contract: freshContract,
-        method: "getTotalCircles",
-        params: []
-      });
-      
-      console.log("  ✅ Fresh contract SUCCESS:", result);
-      
-    } catch (error: any) {
-      console.error("  ❌ Fresh contract FAILED:", error.message);
-      console.error("  Full error:", error);
-    }
-    
-    console.log("=== DEBUGGING COMPLETED ===");
-  };
 
   return (
     <div className="space-y-6">
@@ -172,30 +118,9 @@ export function MyCircles() {
             <Plus className="w-4 h-4 mr-2" />
             Create Circle
           </Button>
-          {/* Debug button - remove in production */}
-          <Button 
-            onClick={() => {
-              console.log("=== DEBUG INFO ===");
-              console.log("Contract address:", CONTRACT_ADDRESSES.GENKIFI_CORE);
-              console.log("Contract deployed:", CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED);
-              console.log("Account:", account?.address);
-              console.log("Default chain:", defaultChain);
-              console.log("==================");
-              testContractConnectivity();
-            }} 
-            variant="outline" 
-            size="sm"
-            className="text-xs"
-          >
-            Test Contract
-          </Button>
         </div>
       </div>
 
-      {/* Debug Section - Remove in production */}
-      <div className="mt-8">
-        <ContractTest />
-      </div>
 
       {/* Contract Not Deployed State */}
       {!CONTRACT_STATUS.GENKIFI_CORE_DEPLOYED && (
