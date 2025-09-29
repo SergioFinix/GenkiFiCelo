@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveWallet } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 
 interface UserXPData {
   xp: number;
@@ -21,11 +21,11 @@ export function useUserXPMock(): UserXPData {
     error: null,
   });
 
-  const wallet = useActiveWallet();
+  const account = useActiveAccount();
 
   useEffect(() => {
     async function simulateContractCall() {
-      if (!wallet?.address) {
+      if (!account?.address) {
         setXpData(prev => ({ ...prev, isLoading: false }));
         return;
       }
@@ -34,10 +34,10 @@ export function useUserXPMock(): UserXPData {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log("🎭 Using mock XP data for development");
-      console.log("🔍 Simulating contract call for address:", wallet.address);
+      console.log("🔍 Simulating contract call for address:", account.address);
 
       // Simular diferentes niveles de XP basados en la dirección
-      const addressHash = wallet.address.slice(-4);
+      const addressHash = account.address.slice(-4);
       const hashNumber = parseInt(addressHash, 16);
       
       // Generar XP basado en el hash de la dirección para consistencia
@@ -61,7 +61,7 @@ export function useUserXPMock(): UserXPData {
     }
 
     simulateContractCall();
-  }, [wallet?.address]);
+  }, [account?.address]);
 
   return xpData;
 }
@@ -76,7 +76,7 @@ export function useUserXPLive(): UserXPData {
     error: null,
   });
 
-  const wallet = useActiveWallet();
+  const account = useActiveAccount();
 
   useEffect(() => {
     if (!wallet?.address) {
@@ -103,7 +103,7 @@ export function useUserXPLive(): UserXPData {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [wallet?.address]);
+  }, [account?.address]);
 
   return xpData;
 }
