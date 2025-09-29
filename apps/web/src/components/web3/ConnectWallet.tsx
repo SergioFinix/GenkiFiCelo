@@ -1,6 +1,6 @@
 "use client";
 
-import { ForceFarcasterButton } from "./ForceFarcasterButton";
+import { SmartConnectButton } from "./SmartConnectButton";
 
 
 
@@ -18,7 +18,7 @@ export function ConnectWalletButton({
   onSuccess
 }: ConnectWalletProps) {
   return (
-    <ForceFarcasterButton 
+    <SmartConnectButton 
       className={className}
       size={size}
       variant={variant}
@@ -38,7 +38,7 @@ export function CustomConnectButton({
   children = "Connect Wallet"
 }: CustomConnectButtonProps) {
   return (
-    <ForceFarcasterButton 
+    <SmartConnectButton 
       className={className}
     />
   );
