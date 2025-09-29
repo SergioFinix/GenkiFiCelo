@@ -33,17 +33,19 @@ export function MiniAppProvider({ children, addMiniAppOnLoad }: MiniAppProviderP
 
   const setMiniAppReady = useCallback(async () => {
     try {
-      // Check if we're in a Farcaster environment
-      if (typeof window !== 'undefined' && (window as any).farcaster) {
-        const context = await sdk.context;
-        if (context) {
-          setContext(context);
-        }
-        await sdk.actions.ready();
-        console.log("Farcaster MiniApp SDK initialized successfully");
-      } else {
-        console.log("Not in Farcaster environment, skipping SDK initialization");
+      // Always call ready() when the app is loaded, regardless of environment
+      // This is required by Farcaster specification to hide the splash screen
+      await sdk.actions.ready();
+      console.log("Farcaster MiniApp SDK ready() called successfully");
+      
+      // Get context information
+      const context = await sdk.context;
+      if (context) {
+        setContext(context);
+        console.log("Farcaster context loaded:", context);
       }
+      
+      console.log("Farcaster MiniApp SDK initialized successfully");
     } catch (err) {
       console.error("SDK initialization error:", err);
     } finally {
