@@ -33,7 +33,7 @@ export function SmartConnectButton({
       const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
       
       // Detectar si es una PWA o app nativa
-      const isInApp = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+      const isInApp = (navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
       
       console.log("🔍 Smart Detection:", {
         userAgent,

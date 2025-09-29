@@ -26,7 +26,7 @@ export function ForceFarcasterButton({
         userAgent: navigator.userAgent,
         windowFarcaster: (window as any).farcaster,
         windowLocation: window.location.href,
-        isStandalone: window.navigator.standalone,
+        isStandalone: (navigator as any).standalone,
         displayMode: window.matchMedia('(display-mode: standalone)').matches
       });
     }
