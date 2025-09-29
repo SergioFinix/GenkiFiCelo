@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveWallet } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 import { client } from "@/lib/thirdweb/client";
 import { readContract } from "thirdweb";
 import { genkiFiCoreContract } from "@/lib/thirdweb/contracts";
@@ -23,11 +23,11 @@ export function useUserXP(): UserXPData {
     error: null,
   });
 
-  const wallet = useActiveWallet();
+  const account = useActiveAccount();
 
   useEffect(() => {
     async function fetchUserXP() {
-      if (!wallet?.address) {
+      if (!account?.address) {
         setXpData(prev => ({ ...prev, isLoading: false }));
         return;
       }
@@ -35,13 +35,13 @@ export function useUserXP(): UserXPData {
       try {
         setXpData(prev => ({ ...prev, isLoading: true, error: null }));
 
-        console.log("🔍 Fetching user XP from contract for address:", wallet.address);
+        console.log("🔍 Fetching user XP from contract for address:", account.address);
 
         // Call the smart contract to get user XP data
         const result = await readContract({
           contract: genkiFiCoreContract,
           method: "getUserXP",
-          params: [wallet.address],
+          params: [account.address],
         });
 
         console.log("📊 Contract response:", result);
@@ -89,7 +89,7 @@ export function useUserXP(): UserXPData {
     }
 
     fetchUserXP();
-  }, [wallet?.address]);
+  }, [account?.address]);
 
   return xpData;
 }
