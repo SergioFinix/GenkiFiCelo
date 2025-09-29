@@ -1,9 +1,6 @@
 "use client";
 
-import { ConnectButton } from "thirdweb/react";
-import { Button } from "@/components/ui/Button";
-import { inAppWallet, createWallet } from "thirdweb/wallets";
-import { celo, client } from "@/lib/thirdweb/client";
+import { AuthConnectButton } from "./AuthConnectButton";
 import { FarcasterOnlyButton } from "./FarcasterOnlyButton";
 import { useEffect, useState } from "react";
 
@@ -24,29 +21,6 @@ function useIsMobile() {
   return { isMobile, isClient };
 }
 
-// Configuración para web (todas las opciones)
-const webWallets = [
-  inAppWallet({
-    auth: {
-      options: [
-        "google",
-        "discord",
-        "telegram",
-        "farcaster",
-        "email",
-        "x",
-        "passkey",
-        "phone",
-      ],
-    },
-  }),
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("me.rainbow"),
-  createWallet("com.trustwallet.app"),
-  createWallet("io.rabby"),
-  createWallet("io.zerion.wallet"),
-];
 
 interface ConnectWalletProps {
   className?: string;
@@ -82,22 +56,12 @@ export function ConnectWalletButton({
     );
   }
 
-  // En web, usar Thirdweb con todas las opciones
+  // En web, usar Auth de Thirdweb
   return (
-    <ConnectButton
-      client={client}
-      chain={celo}
-      wallets={webWallets}
-      connectButton={{
-        label: "Connect Wallet",
-        className: `w-full h-12 px-6 py-3 bg-gradient-primary text-white rounded-xl font-medium transition-all duration-200 hover:shadow-glow-green hover:scale-105 active:scale-95 ${className}`,
-      }}
-      connectModal={{
-        size: "compact",
-        title: "Connect to GenkiFi",
-        titleIcon: "",
-        showThirdwebBranding: false,
-      }}
+    <AuthConnectButton 
+      className={className}
+      size={size}
+      variant={variant}
     />
   );
 }
@@ -113,20 +77,8 @@ export function CustomConnectButton({
   children = "Connect Wallet"
 }: CustomConnectButtonProps) {
   return (
-    <ConnectButton
-      client={client}
-      chain={celo}
-      wallets={webWallets}
-      connectButton={{
-        label: children,
-        className: `w-full h-12 px-6 py-3 bg-gradient-primary text-white rounded-xl font-medium transition-all duration-200 hover:shadow-glow-green hover:scale-105 active:scale-95 ${className}`,
-      }}
-      connectModal={{
-        size: "compact",
-        title: "Connect to GenkiFi",
-        titleIcon: "",
-        showThirdwebBranding: false,
-      }}
+    <AuthConnectButton 
+      className={className}
     />
   );
 }
